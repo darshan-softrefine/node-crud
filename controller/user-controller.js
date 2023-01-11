@@ -24,7 +24,7 @@ exports.uerRegister = async(req,res)=>{
 
             return res.status(400).send({ status: false, message:"user is not created"});
         }else{
-            apiResponse.successApiResponse(res,true,"user created successfully",user);
+            apiResponse.successApiResponse(res,true,"user created successfully",[user]);
         }
 
 
@@ -36,14 +36,12 @@ exports.uerRegister = async(req,res)=>{
 
 exports.userList = async(req,res)=>{
 
-    console.log("list", req.query);
-    console.log("list i", req.query.id);
+   const userlist = await User.findById(req.query.id);
 
-    const userlist = await User.findById(req.query.id);
     if(_.isEmpty(userlist)){
         return res.status(400).send({ status: false, message:"no user found", data:[]});
     }else{
-        apiResponse.successApiResponse(res,true,"Users fetched successfully",userlist);
+        apiResponse.successApiResponse(res,true,"Users fetched successfully",[userlist]);
     }
 };
 
@@ -57,7 +55,7 @@ exports.userEdit = async(req,res)=>{
 
     }else{
 
-        apiResponse.successApiResponse(res,true,"Users edited successfully",useredited);
+        apiResponse.successApiResponse(res,true,"Users edited successfully",[useredited]);
     }
 },
 

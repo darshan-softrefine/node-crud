@@ -16,7 +16,7 @@ password:{
     required:true
 },
 mobileno:{
-    typee:Number
+    type:Number
 },
 gender:{
     type:String
