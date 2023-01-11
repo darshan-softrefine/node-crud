@@ -36,7 +36,10 @@ exports.uerRegister = async(req,res)=>{
 
 exports.userList = async(req,res)=>{
 
-    const userlist = await User.find({});
+    console.log("list", req.query);
+    console.log("list i", req.query.id);
+
+    const userlist = await User.findById(req.query.id);
     if(_.isEmpty(userlist)){
         return res.status(400).send({ status: false, message:"no user found", data:[]});
     }else{
