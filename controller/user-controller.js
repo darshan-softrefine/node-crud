@@ -1,5 +1,7 @@
-const User = require('../model/user-model');
 const _ = require('lodash/core');
+const bcrypt = require('bcryptjs');
+const User = require('../model/user-model');
+const UserCred = require('../model/user-cred-model');
 const apiResponse = require('../helper/apiResponse');
 
 
@@ -60,9 +62,76 @@ exports.userEdit = async (req, res) => {
     }
 },
 
-    exports.userDelete = async (req, res) => {
+exports.userDelete = async (req, res) => {
 
         await User.findByIdAndDelete(req.query.id);
 
         apiResponse.successApiResponse(res, true, "user Deleted successfully");
+},
+
+exports.userCredAdd = async(req,res)=>{
+
+    try {
+
+        const {userId,websitename,username, email, password} = req.body;
+
+        encryptedPassword = await bcrypt.hash(password, 10);
+
+        const usercred = new UserCred({
+            userId:userId,
+            websitename:websitename,
+            username:username,
+            email:email,
+            password:encryptedPassword
+        });
+
+
+        await usercred.save((err,data)=>{
+
+            if(err){
+                return res.status(400).send({ status: false, message: "Data is not Added" });
+            }else{
+                apiResponse.successApiResponse(res, true, "Data Added successfully", usercred);
+            }
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(400).send({ status: false, message: "somethingwent wrong", error: error.message });
     }
+   
+},
+
+exports.usercredList = async(req,res)=>{
+        try {
+            
+            const credlist = await UserCred.find(req.query);
+
+            if(_.isEmpty(credlist)){
+                return res.status(400).send({ status: false, message: "no user found", data: [] });
+
+            }else{
+                apiResponse.successApiResponse(res, true, "Cred list Fetched successfully", credlist);
+            }
+
+        } catch (error) {
+            return res.status(400).send({ status: false, message: "somethingwent wrong", error: error.message });
+        }
+},
+
+exports.usercredEdit = async(req,res)=>{
+
+    console.log("re.query.id", req.query.id);
+
+    const usercrededited = await UserCred.findByIdAndUpdate(req.query.id, req.body, { new: true}).select({userId:0});
+
+    if (_.isEmpty(usercrededited)) {
+
+        return res.status(400).send({ status: false, message: "usercred is not edited", data: [] });
+
+    } else {
+
+        apiResponse.successApiResponse(res, true, "Users crededited successfully", usercrededited);
+    }
+};
+
