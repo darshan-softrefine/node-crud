@@ -1,11 +1,11 @@
-exports.successApiResponse = function(res,status, msg, data1){
+exports.successApiResponse = function (res, status, msg, data1) {
 
-    var data = {
+	var data = {
 		status: status,
 		message: msg,
 		data: data1
 	};
 
-    return res.status(200).send(data);
+	return res.status(200).send(data);
 };
 
