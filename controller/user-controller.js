@@ -3,20 +3,22 @@ const bcrypt = require('bcryptjs');
 const User = require('../model/user-model');
 const UserCred = require('../model/user-cred-model');
 const apiResponse = require('../helper/apiResponse');
-
+const { use } = require('../routes/routes');
+const crypt = require('../helper/crpyto');
 
 exports.uerRegister = async (req, res) => {
 
-    console.log("response", req.body);
     const { username, email, password, confirm, mobileno, gender } = req.body;
 
     try {
 
+        const encryptedPassword = crypt.encrypt(password);
+
         const user = await User.create({
             username: username,
             email: email,
-            password: password,
-            confirm: confirm,
+            password: encryptedPassword,
+            confirm: encryptedPassword,
             mobileno: mobileno,
             gender: gender
         });
@@ -30,14 +32,38 @@ exports.uerRegister = async (req, res) => {
             apiResponse.successApiResponse(res, true, "user created successfully", user);
         }
 
-
     } catch (error) {
         console.log("error", error);
         return res.status(400).send({ status: false, message: "somethingwent wrong", error: error.message });
     }
 },
 
-    exports.userList = async (req, res) => {
+exports.userLogin = async(req,res)=>{
+
+    const{email,password} = req.body;
+
+    if (!(email && password)) {
+        return res.status(400).send({ status: false, message:"All input is required"});
+    }
+
+    const user = await User.findOne({email});
+
+    if(!user){
+        return res.status(400).send({ status: false, message:"You are not registered, please signup"});
+    }
+    
+    const decryptedPassword = crypt.decrypt(user.password);
+
+    if (user && password === decryptedPassword) {
+        apiResponse.successApiResponse(res,true,"user loggedin",user);
+    }else{
+        return res.status(400).send({ status: false, message:"wrong Password"});
+    }
+
+
+},
+
+exports.userList = async (req, res) => {
 
         const userlist = await User.findById(req.query.id);
 
@@ -73,27 +99,13 @@ exports.userCredAdd = async(req,res)=>{
 
     try {
 
-        const {userId,websitename,username, email, password} = req.body;
-
-        encryptedPassword = await bcrypt.hash(password, 10);
-
-        const usercred = new UserCred({
-            userId:userId,
-            websitename:websitename,
-            username:username,
-            email:email,
-            password:encryptedPassword
-        });
-
-
-        await usercred.save((err,data)=>{
-
-            if(err){
-                return res.status(400).send({ status: false, message: "Data is not Added" });
-            }else{
-                apiResponse.successApiResponse(res, true, "Data Added successfully", usercred);
-            }
-        });
+        if(JSON.stringify(req.body) === '{}'){
+            return res.status(400).send({ status: false, message: "Please Add required field"});
+        }
+        req.body.password  = crypt.encrypt(req.body.password);
+        const usercred = new UserCred(req.body);
+        await usercred.save();
+        apiResponse.successApiResponse(res, true, "Data Added successfully", usercred);
 
     } catch (error) {
         console.log(error);
@@ -133,5 +145,16 @@ exports.usercredEdit = async(req,res)=>{
 
         apiResponse.successApiResponse(res, true, "Users crededited successfully", usercrededited);
     }
-};
+},
 
+exports.userDecryptPassword = async(req,res)=>{
+
+    const user = await UserCred.findById(req.query.id);
+
+    const decryptedPassword = crypt.decrypt(user.password);
+
+    console.log("usercred",decryptedPassword);
+
+    apiResponse.successApiResponse(res,true,"decrypted password fetched", decryptedPassword);
+
+};
