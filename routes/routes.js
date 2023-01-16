@@ -10,6 +10,7 @@ router.delete('/user-delete',userController.userDelete);
 router.post('/user-cred-add', userController.userCredAdd);
 router.get('/user-cred-list', userController.usercredList);
 router.patch('/user-cred-edit', userController.usercredEdit);
+router.delete('/user-cred-delete', userController.usercredDelete);
 router.get('/user-decrypt-password', userController.userDecryptPassword);
 
 

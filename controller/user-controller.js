@@ -29,6 +29,8 @@ exports.uerRegister = async (req, res) => {
 
             return res.status(400).send({ status: false, message: "user is not created" });
         } else {
+            user.password = crypt.decrypt(user.password);
+            user.confirm = user.password;
             apiResponse.successApiResponse(res, true, "user created successfully", user);
         }
 
@@ -55,6 +57,8 @@ exports.userLogin = async(req,res)=>{
     const decryptedPassword = crypt.decrypt(user.password);
 
     if (user && password === decryptedPassword) {
+        user.password = decryptedPassword;
+        user.confirm = password;
         apiResponse.successApiResponse(res,true,"user loggedin",user);
     }else{
         return res.status(400).send({ status: false, message:"wrong Password"});
@@ -157,4 +161,10 @@ exports.userDecryptPassword = async(req,res)=>{
 
     apiResponse.successApiResponse(res,true,"decrypted password fetched", decryptedPassword);
 
+},
+
+exports.usercredDelete = async(req,res)=>{
+    console.log("req", req.query);
+    await UserCred.findByIdAndDelete(req.query.id);
+    apiResponse.successApiResponse(res, true, "user Credential Deleted successfully");
 };
