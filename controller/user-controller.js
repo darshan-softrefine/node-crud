@@ -121,13 +121,20 @@ exports.userCredAdd = async(req,res)=>{
 exports.usercredList = async(req,res)=>{
         try {
             
-            const credlist = await UserCred.find(req.query);
+
+            var pageSize = req.query.pagesize || 5;
+            var page = req.query.page || 1;
+
+            const credlist = await UserCred.find(req.query.id).limit(pageSize).skip(pageSize * page);
+
+            const count = await UserCred.count();
 
             if(_.isEmpty(credlist)){
                 return res.status(400).send({ status: false, message: "no user found", data: [] });
 
             }else{
-                apiResponse.successApiResponse(res, true, "Cred list Fetched successfully", credlist);
+                res.status(200).send({status:true,message:"cred list fetched successfully",total:count,data:credlist});
+                //apiResponse.successApiResponse(res, true, "Cred list Fetched successfully", credlist);
             }
 
         } catch (error) {
@@ -138,7 +145,7 @@ exports.usercredList = async(req,res)=>{
 exports.usercredEdit = async(req,res)=>{
 
     console.log("re.query.id", req.query.id);
-
+    req.body.password = crypt.encrypt(req.body.password);
     const usercrededited = await UserCred.findByIdAndUpdate(req.query.id, req.body, { new: true}).select({userId:0});
 
     if (_.isEmpty(usercrededited)) {
