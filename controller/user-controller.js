@@ -122,12 +122,11 @@ exports.usercredList = async(req,res)=>{
         try {
             
 
-            var pageSize = req.query.pagesize || 5;
-            var page = req.query.page || 1;
+            var pageSize = req.query.pagesize;
+            var page = req.query.page;
 
-            const credlist = await UserCred.find(req.query.id).limit(pageSize).skip(pageSize * page);
-
-            const count = await UserCred.count();
+            const credlist = await UserCred.find({userId:req.query.userId}).limit(pageSize).skip(pageSize * (page-1));
+            const count = await UserCred.find({userId:req.query.userId}).count();
 
             if(_.isEmpty(credlist)){
                 return res.status(400).send({ status: false, message: "no user found", data: [] });
